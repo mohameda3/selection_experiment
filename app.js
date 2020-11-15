@@ -237,7 +237,7 @@ function changeBackground(color) {
   return
 }
 
-// Renders three lines of texts to indicate the study status.
+// Renders lines of texts to indicate the study status.
 function setStatusText(text1, text2, text3, text4) {
   svg.select(".studyStatusText1").text(text1);
   svg.select(".studyStatusText2").text(text2);
@@ -355,7 +355,18 @@ svg.on("click", function (d, i) {
   }
   else if (isRestBeforeCondition){
     isRestBeforeCondition = false
+    // Reset variables so we can continue the experiment
+    currentBlock = 1
+    currentTrial = 0
+    currentTrialMissedClicks = 0
+    isRestBeforeBlock = true
     // console.log('Resting before attempting another condition.')
+    setStatusText(
+      "Cursor Set to " + currentTechnique,
+      "Background Colour Set to " + currentTechnique,
+      "Click to Begin Block " + currentBlock + " of " + totalBlock,
+      "The block has " + totalTrials + " Trials"
+    )
   }
   // Otherwise if the current status is study-running, a click should be handled based on currentTechnique .
   else if (isStudyRunning) {
@@ -406,6 +417,7 @@ svg.on("click", function (d, i) {
         // A block is finished when currentTrial == totalTrials,
         // add a dashline to for data readability.
         trialFileContent += "------\n";
+        console.log('Completed block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
 
         if (currentBlock == totalBlock) {
           // Current condition is finished when currentBlock == totalBlock,
@@ -434,7 +446,6 @@ svg.on("click", function (d, i) {
           } else {
             // This isn't the last condition, repeat another study
             isRestBeforeCondition = true
-            // Setup new page
             isStudyRunning = false;
             svg.selectAll(".targetCircles").remove();
             numTargets = 0;
@@ -454,7 +465,6 @@ svg.on("click", function (d, i) {
             ""
           );
           isRestBeforeBlock = true;
-          console.log('Completed block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
           currentBlock += 1;
           currentTrial = 0;
           svg.selectAll(".targetCircles").remove();
