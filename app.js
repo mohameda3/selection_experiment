@@ -11,16 +11,22 @@ var w = 960,
 // Experiment variables, modify or define your own vars here.
 var participant = prompt("Please enter the participant number:", "");
 var techinque = prompt("Please enter the technique:", "");
-var totalBlock = 10;
+var backgroundColour = prompt("Please enter the background colour:", "");
+var totalBlock = 5;
 var currentBlock = 1;
 var totalTrials = 10;
 var currentTrial = 0;
+var currentTrialMissedClicks = 0
+var totalConditions = 2
+var currentCondition = 0
 var trialFileContent = "participant\ttrial\ttechnique\ttime\n";
 var trialStartTime;
 var currentTechnique = setTechnique();
+var currentBackGroundColour = setBackgroundColour();
 var areaRadius = 50;
 var isStudyRunning = true;
 var isRestBeforeBlock = true;
+var isRestBeforeCondition = false;
 
 // Define the bubble cursor interface
 var svg = d3.select("div").append("svg:svg").attr("width", w).attr("height", h);
@@ -220,11 +226,23 @@ function setTechnique() {
   return "POINT";
 }
 
+function setBackgroundColour() {
+  if (backgroundColour == "1") return "WHITE";
+  if (backgroundColour == "2") return "YELLOW";
+  if (backgroundColour == "3") return "BLACK";
+  return "WHITE";
+}
+
+function changeBackground(color) {
+  return
+}
+
 // Renders three lines of texts to indicate the study status.
-function setStatusText(text1, text2, text3) {
+function setStatusText(text1, text2, text3, text4) {
   svg.select(".studyStatusText1").text(text1);
   svg.select(".studyStatusText2").text(text2);
   svg.select(".studyStatusText3").text(text3);
+  svg.select(".studyStatusText4").text(text4);
 }
 
 // Below initiates neccesary UI elements for the study.
@@ -243,12 +261,18 @@ svg
   .attr("class", "studyStatusText2")
   .attr("x", 20)
   .attr("y", 40)
-  .text("Click to Begin Block " + currentBlock + " of " + totalBlock);
+  .text("Background Colour Set to " + currentBackGroundColour);
 svg
   .append("text")
   .attr("class", "studyStatusText3")
   .attr("x", 20)
   .attr("y", 60)
+  .text("Click to Begin Block " + currentBlock + " of " + totalBlock);
+svg
+  .append("text")
+  .attr("class", "studyStatusText4")
+  .attr("x", 20)
+  .attr("y", 80)
   .text("The block has " + totalTrials + " Trials");
 // Add in the cursor circle at 0,0 with 0 radius
 // We add it first so that it appears behind the targets
@@ -290,8 +314,9 @@ svg.on("mousemove", function (d, i) {
 svg.on("click", function (d, i) {
   // If current status is the rest before a block, a click would initiate new target circles and start the study.
   if (isRestBeforeBlock) {
+    console.log('Beginning block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
     isRestBeforeBlock = false;
-    setStatusText("", "", "");
+    setStatusText("", "", "", "");
     isStudyRunning = true;
     var d = new Date();
     trialStartTime = d.getTime();
@@ -327,6 +352,10 @@ svg.on("click", function (d, i) {
     });
     // Update the fill color of the targets
     updateTargetsFill(-1, clickTarget);
+  }
+  else if (isRestBeforeCondition){
+    isRestBeforeCondition = false
+    // console.log('Resting before attempting another condition.')
   }
   // Otherwise if the current status is study-running, a click should be handled based on currentTechnique .
   else if (isStudyRunning) {
@@ -371,6 +400,8 @@ svg.on("click", function (d, i) {
         trialTotalTime +
         "\n";
       currentTrial++;
+      console.log('Completed trial; trial_no: %d, total_trials: %d, misses: %d,  time_taken: %d ms', currentTrial, totalTrials, currentTrialMissedClicks,trialTotalTime)
+      currentTrialMissedClicks = 0
       if (currentTrial == totalTrials) {
         // A block is finished when currentTrial == totalTrials,
         // add a dashline to for data readability.
@@ -386,23 +417,44 @@ svg.on("click", function (d, i) {
             blob,
             "P" + participant + "_" + currentTechnique + "_data.txt"
           );
-          // Clear the visualization.
-          isStudyRunning = false;
-          svg.selectAll(".targetCircles").remove();
-          numTargets = 0;
-          setStatusText(
-            "Study Complete!",
-            "Please Ensure the Data File Has Been Downloaded",
-            ""
-          );
+          currentCondition++;
+          console.log('Completed condition %d out of %d', currentCondition, totalConditions)
+          if (currentCondition == totalConditions){
+            // All conditions is ifnished when currentCondition == totalCondition
+            // Clear the visualization.
+            isStudyRunning = false;
+            svg.selectAll(".targetCircles").remove();
+            numTargets = 0;
+            setStatusText(
+              "Study Complete!",
+              "Please Ensure the Data File Has Been Downloaded",
+              "",
+              ""
+            );
+          } else {
+            // This isn't the last condition, repeat another study
+            isRestBeforeCondition = true
+            // Setup new page
+            isStudyRunning = false;
+            svg.selectAll(".targetCircles").remove();
+            numTargets = 0;
+            setStatusText(
+              "Condition " + currentCondition  + " out of "+ totalConditions +" Complete!",
+              "Please Ensure the Data File Has Been Downloaded",
+              "Please click to continue to the next condition.",
+              ""
+            );
+          } 
         } else {
           // Finished one block, the participants should be allowed to rest.
           setStatusText(
             "Block Complete!",
             "Click to continue to the next block",
+            "",
             ""
           );
           isRestBeforeBlock = true;
+          console.log('Completed block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
           currentBlock += 1;
           currentTrial = 0;
           svg.selectAll(".targetCircles").remove();
@@ -418,6 +470,9 @@ svg.on("click", function (d, i) {
         updateTargetsFill(capturedTargetIdx, clickTarget);
         trialStartTime = trialEndTime;
       }
+    } else {
+      // Missed click
+      currentTrialMissedClicks++;
     }
   }
 });
