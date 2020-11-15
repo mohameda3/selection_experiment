@@ -12,6 +12,7 @@ var w = 960,
 var participant = prompt("Please enter the participant number:", "");
 var techinque = prompt("Please enter the technique:", "");
 var backgroundColour = prompt("Please enter the background colour:", "");
+var targetCount = prompt("Please enter the target count")
 var totalBlock = 5;
 var currentBlock = 1;
 var totalTrials = 10;
@@ -23,6 +24,7 @@ var trialFileContent = "participant\ttrial\ttechnique\ttime\n";
 var trialStartTime;
 var currentTechnique = setTechnique();
 var currentBackGroundColour = setBackgroundColour();
+var currentTargetCount = setTargetCount();
 var areaRadius = 50;
 var isStudyRunning = true;
 var isRestBeforeBlock = true;
@@ -231,6 +233,13 @@ function setBackgroundColour() {
   if (backgroundColour == "2") return "YELLOW";
   if (backgroundColour == "3") return "BLACK";
   return "WHITE";
+}
+
+function setTargetCount(){
+  if (targetCount == "1") return 20;
+  if (targetCount == "2") return 40;
+  if (targetCount == "3") return 80;
+  return 20;
 }
 
 function changeBackground(color) {
