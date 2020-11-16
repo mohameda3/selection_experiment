@@ -12,14 +12,14 @@ var w = 960,
 var participant = prompt("Please enter the participant number:", "");
 // Experiment variables, modify or define your own vars here.
 var techinque = "1"
-var backgroundColour = "2"
-var targetCount = "3"
+var backgroundColour = "1"
+var targetCount = "1"
 var totalBlock = 5;
 var currentBlock = 1;
-var totalTrials = 10;
+var totalTrials = 1;
 var currentTrial = 0;
 var currentTrialMissedClicks = 0
-var totalConditions = 3
+var totalConditions = 0
 var currentCondition = 0
 var trialFileContent = "participant\ttrial\ttechnique\tbackground_colour\ttarget_count\ttime\tmisses\n";
 var trialStartTime;
@@ -31,8 +31,6 @@ var isRestBeforeCondition = false;
 var currentTechnique = setTechnique();
 var currentBackGroundColour = setBackgroundColour();
 var currentTargetCount = setTargetCount();
-//Helper variable to change text colour when background is black
-var isBackgroundBlack = false
 
 // Define the bubble cursor interface
 var svg = d3.select("div").append("svg:svg").attr("width", w).attr("height", h);
@@ -251,15 +249,18 @@ function changeBackgroundColour() {
   svg.select(".backgroundRect").style("fill", currentBackGroundColour.toLowerCase())
 
   if (currentBackGroundColour == "BLACK"){
-    isBackgroundBlack = true
+    svg.select(".studyStatusText1").style("fill", "white")
+    svg.select(".studyStatusText2").style("fill", "white")
+    svg.select(".studyStatusText3").style("fill", "white")
+    svg.select(".studyStatusText4").style("fill", "white")
+    svg.select(".studyStatusText5").style("fill", "white")
   } else {
-    isBackgroundBlack = false
+    svg.select(".studyStatusText1").style("fill", "black")
+    svg.select(".studyStatusText2").style("fill", "black")
+    svg.select(".studyStatusText3").style("fill", "black")
+    svg.select(".studyStatusText4").style("fill", "black")
+    svg.select(".studyStatusText5").style("fill", "black")
   }
-}
-
-function getTextColour(){
-  if (currentBackGroundColour == "BLACK") return "white";
-  return "black"
 }
 
 function setIndependentVariables(){
@@ -298,35 +299,30 @@ function run_study(){
     .attr("class", "studyStatusText1")
     .attr("x", 20)
     .attr("y", 20)
-    .style("fill", getTextColour())
     .text("Cursor Set to " + currentTechnique);
   svg
     .append("text")
     .attr("class", "studyStatusText2")
     .attr("x", 20)
     .attr("y", 40)
-    .style("fill", getTextColour())
     .text("Background Colour Set to " + currentBackGroundColour);
   svg
     .append("text")
     .attr("class", "studyStatusText3")
     .attr("x", 20)
     .attr("y", 60)
-    .style("fill", getTextColour())
     .text("Target Count Set to " + currentTargetCount);
   svg
     .append("text")
     .attr("class", "studyStatusText4")
     .attr("x", 20)
     .attr("y", 80)
-    .style("fill", getTextColour())
     .text("Click to Begin Block " + currentBlock + " of " + totalBlock);
   svg
     .append("text")
     .attr("class", "studyStatusText5")
     .attr("x", 20)
     .attr("y", 100)
-    .style("fill", getTextColour())
     .text("The block has " + totalTrials + " Trials");
   // Add in the cursor circle at 0,0 with 0 radius
   // We add it first so that it appears behind the targets
@@ -417,6 +413,7 @@ function run_study(){
       trialFileContent = "participant\ttrial\ttechnique\tbackground_colour\ttarget_count\ttime\tmisses\n";
       // Update the independant variables
       setIndependentVariables()
+      changeBackgroundColour()
       console.log('Condition %d; cursor: %s, background_colour: %s, target_count: %d', currentCondition, currentTechnique, currentBackGroundColour, currentTargetCount)
       setStatusText(
         "Cursor Set to " + currentTechnique,
@@ -563,6 +560,7 @@ d3.csv(fp, function(data) {
   console.log('Loading csv file: %s', fp)
   csv = data
   console.log(csv)
+  totalConditions = csv.length
   console.log('Beginning the study....')
   run_study();
 });
