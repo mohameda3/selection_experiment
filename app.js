@@ -1,3 +1,12 @@
+// Load CSV file
+var fp = 'https://raw.githubusercontent.com/mohameda3/selection_experiment/main/participant_1.csv'
+var csv = []
+d3.csv(fp, function(data) {
+  console.log('Loading csv file: %s', fp)
+  csv = data
+});
+
+
 // Number of targets
 var numTargets = 0;
 // Min/Max radius of targets
@@ -8,11 +17,12 @@ var minSep = 20;
 // Canvas size
 var w = 960,
   h = 500;
-// Experiment variables, modify or define your own vars here.
+
 var participant = prompt("Please enter the participant number:", "");
-var techinque = prompt("Please enter the technique:", "");
-var backgroundColour = prompt("Please enter the background colour:", "");
-var targetCount = prompt("Please enter the target count")
+// Experiment variables, modify or define your own vars here.
+var techinque = "1"
+var backgroundColour = "1"
+var targetCount = "1"
 var totalBlock = 5;
 var currentBlock = 1;
 var totalTrials = 10;
@@ -254,6 +264,7 @@ function setStatusText(text1, text2, text3, text4) {
   svg.select(".studyStatusText4").text(text4);
 }
 
+
 // Below initiates neccesary UI elements for the study.
 // Make the targets
 var targets = initTargets(numTargets, minRadius, maxRadius, minSep);
@@ -369,7 +380,14 @@ svg.on("click", function (d, i) {
     currentTrial = 0
     currentTrialMissedClicks = 0
     isRestBeforeBlock = true
-    // console.log('Resting before attempting another condition.')
+    // Update the independant variables
+    techinque = iv_csv[currentCondition][1]
+    backgroundColour = iv_csv[currentCondition][2]
+    targetCount = iv_csv[currentCondition][3]
+    setTechnique()
+    setBackgroundColour()
+    setTargetCount()
+    console.log('Condition %d; cursor: %s, background_colour: %s, target_count: %d', techinque, backgroundColour, targetCount)
     setStatusText(
       "Cursor Set to " + currentTechnique,
       "Background Colour Set to " + currentTechnique,
