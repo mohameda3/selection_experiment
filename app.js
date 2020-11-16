@@ -31,6 +31,8 @@ var isRestBeforeCondition = false;
 var currentTechnique = setTechnique();
 var currentBackGroundColour = setBackgroundColour();
 var currentTargetCount = setTargetCount();
+//Helper variable to change text colour when background is black
+var isBackgroundBlack = false
 
 // Define the bubble cursor interface
 var svg = d3.select("div").append("svg:svg").attr("width", w).attr("height", h);
@@ -244,8 +246,20 @@ function setTargetCount(){
   return 20;
 }
 
-function changeBackground(color) {
-  return
+function changeBackgroundColour() {
+  document.body.style.backgroundColor = currentBackGroundColour.toLowerCase()
+  svg.select(".backgroundRect").style("fill", currentBackGroundColour.toLowerCase())
+
+  if (currentBackGroundColour == "BLACK"){
+    isBackgroundBlack = true
+  } else {
+    isBackgroundBlack = false
+  }
+}
+
+function getTextColour(){
+  if (currentBackGroundColour == "BLACK") return "white";
+  return "black"
 }
 
 function setIndependentVariables(){
@@ -271,6 +285,7 @@ function setStatusText(text1, text2, text3, text4, text5) {
 
 function run_study(){
   setIndependentVariables()
+  changeBackgroundColour()
   console.log('Condition %d; cursor: %s, background_colour: %s, target_count: %d', currentCondition, currentTechnique, currentBackGroundColour, currentTargetCount)
   
   // Below initiates neccesary UI elements for the study.
@@ -283,30 +298,35 @@ function run_study(){
     .attr("class", "studyStatusText1")
     .attr("x", 20)
     .attr("y", 20)
+    .style("fill", getTextColour())
     .text("Cursor Set to " + currentTechnique);
   svg
     .append("text")
     .attr("class", "studyStatusText2")
     .attr("x", 20)
     .attr("y", 40)
+    .style("fill", getTextColour())
     .text("Background Colour Set to " + currentBackGroundColour);
   svg
     .append("text")
     .attr("class", "studyStatusText3")
     .attr("x", 20)
     .attr("y", 60)
+    .style("fill", getTextColour())
     .text("Target Count Set to " + currentTargetCount);
   svg
     .append("text")
     .attr("class", "studyStatusText4")
     .attr("x", 20)
     .attr("y", 80)
+    .style("fill", getTextColour())
     .text("Click to Begin Block " + currentBlock + " of " + totalBlock);
   svg
     .append("text")
     .attr("class", "studyStatusText5")
     .attr("x", 20)
     .attr("y", 100)
+    .style("fill", getTextColour())
     .text("The block has " + totalTrials + " Trials");
   // Add in the cursor circle at 0,0 with 0 radius
   // We add it first so that it appears behind the targets
