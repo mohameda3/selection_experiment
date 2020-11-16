@@ -16,7 +16,7 @@ var backgroundColour = "1"
 var targetCount = "1"
 var totalBlock = 5;
 var currentBlock = 1;
-var totalTrials = 1;
+var totalTrials = 2;
 var currentTrial = 0;
 var currentTrialMissedClicks = 0
 var totalConditions = 0
@@ -286,7 +286,6 @@ function setStatusText(text1, text2, text3, text4, text5) {
 
 function run_study(){
   setIndependentVariables()
-  changeBackgroundColour()
   console.log('Condition %d; cursor: %s, background_colour: %s, target_count: %d', currentCondition, currentTechnique, currentBackGroundColour, currentTargetCount)
   
   // Below initiates neccesary UI elements for the study.
@@ -342,6 +341,8 @@ function run_study(){
     .attr("cy", 0)
     .attr("r", 0)
     .attr("fill", "lightgray");
+  
+  changeBackgroundColour()
 
   // Below binds events to UI elements to implement the study work flow.
   // Handle mousemove events. There should be different visuals preseneted when moving the cursor.
@@ -410,7 +411,6 @@ function run_study(){
       currentTrial = 0
       currentTrialMissedClicks = 0
       isRestBeforeBlock = true
-      trialFileContent = "participant\ttrial\ttechnique\tbackground_colour\ttarget_count\ttime\tmisses\n";
       // Update the independant variables
       setIndependentVariables()
       changeBackgroundColour()
@@ -484,14 +484,6 @@ function run_study(){
           if (currentBlock == totalBlock) {
             currentCondition++;
             // Current condition is finished when currentBlock == totalBlock,
-            var blob = new Blob([trialFileContent], {
-              type: "text/plain;charset=utf-8;",
-            });
-            // Download the study data as a txt file.
-            saveAs(
-              blob,
-              "p" + participant + "_" + "c" + currentCondition + "_" + currentTechnique + "_" + currentBackGroundColour+ "_" + currentTargetCount + "_data.txt"
-            );
             console.log('Completed condition %d out of %d', currentCondition, totalConditions)
             if (currentCondition == totalConditions){
               // All conditions is ifnished when currentCondition == totalCondition
@@ -499,6 +491,16 @@ function run_study(){
               isStudyRunning = false;
               svg.selectAll(".targetCircles").remove();
               numTargets = 0;
+              // Save the file
+              var blob = new Blob([trialFileContent], {
+                type: "text/plain;charset=utf-8;",
+              });
+              // Download the study data as a txt file.
+              saveAs(
+                blob,
+                "p" + participant + "_" +  Date.now() + "_data.txt"
+              );
+
               setStatusText(
                 "Study Complete!",
                 "Please Ensure the Data File Has Been Downloaded",
@@ -514,8 +516,8 @@ function run_study(){
               numTargets = 0;
               setStatusText(
                 "Condition " + currentCondition  + " out of "+ totalConditions +" Complete!",
-                "Please Ensure the Data File Has Been Downloaded",
                 "Please click to continue to the next condition.",
+                "",
                 "",
                 ""
               );
