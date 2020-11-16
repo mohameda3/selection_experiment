@@ -1,12 +1,3 @@
-// Load CSV file
-var fp = 'https://raw.githubusercontent.com/mohameda3/selection_experiment/main/participant_1.csv'
-var csv = []
-d3.csv(fp, function(data) {
-  console.log('Loading csv file: %s', fp)
-  csv = data
-});
-
-
 // Number of targets
 var numTargets = 0;
 // Min/Max radius of targets
@@ -21,24 +12,25 @@ var w = 960,
 var participant = prompt("Please enter the participant number:", "");
 // Experiment variables, modify or define your own vars here.
 var techinque = "1"
-var backgroundColour = "1"
-var targetCount = "1"
+var backgroundColour = "2"
+var targetCount = "3"
 var totalBlock = 5;
 var currentBlock = 1;
 var totalTrials = 10;
 var currentTrial = 0;
 var currentTrialMissedClicks = 0
-var totalConditions = 2
+var totalConditions = 3
 var currentCondition = 0
-var trialFileContent = "participant\ttrial\ttechnique\ttime\n";
+var trialFileContent = "participant\ttrial\ttechnique\tbackground_colour\ttarget_count\ttime\tmisses\n";
 var trialStartTime;
-var currentTechnique = setTechnique();
-var currentBackGroundColour = setBackgroundColour();
-var currentTargetCount = setTargetCount();
 var areaRadius = 50;
 var isStudyRunning = true;
 var isRestBeforeBlock = true;
 var isRestBeforeCondition = false;
+// Independent variables
+var currentTechnique = setTechnique();
+var currentBackGroundColour = setBackgroundColour();
+var currentTargetCount = setTargetCount();
 
 // Define the bubble cursor interface
 var svg = d3.select("div").append("svg:svg").attr("width", w).attr("height", h);
@@ -256,147 +248,88 @@ function changeBackground(color) {
   return
 }
 
+function setIndependentVariables(){
+  row = csv[currentCondition]
+  techinque = row["cursorType"]
+  backgroundColour = row["backgroundColour"]
+  targetCount = row["targetCount"]
+
+  // Independent variables
+  currentTechnique = setTechnique();
+  currentBackGroundColour = setBackgroundColour();
+  currentTargetCount = setTargetCount();
+}
+
 // Renders lines of texts to indicate the study status.
-function setStatusText(text1, text2, text3, text4) {
+function setStatusText(text1, text2, text3, text4, text5) {
   svg.select(".studyStatusText1").text(text1);
   svg.select(".studyStatusText2").text(text2);
   svg.select(".studyStatusText3").text(text3);
   svg.select(".studyStatusText4").text(text4);
+  svg.select(".studyStatusText5").text(text5);
 }
 
+function run_study(){
+  setIndependentVariables()
+  console.log('Condition %d; cursor: %s, background_colour: %s, target_count: %d', currentCondition, currentTechnique, currentBackGroundColour, currentTargetCount)
+  
+  // Below initiates neccesary UI elements for the study.
+  // Make the targets
+  var targets = initTargets(numTargets, minRadius, maxRadius, minSep);
+  // Choose the target that should be clicked
+  var clickTarget = Math.floor(Math.random() * targets.length);
+  svg
+    .append("text")
+    .attr("class", "studyStatusText1")
+    .attr("x", 20)
+    .attr("y", 20)
+    .text("Cursor Set to " + currentTechnique);
+  svg
+    .append("text")
+    .attr("class", "studyStatusText2")
+    .attr("x", 20)
+    .attr("y", 40)
+    .text("Background Colour Set to " + currentBackGroundColour);
+  svg
+    .append("text")
+    .attr("class", "studyStatusText3")
+    .attr("x", 20)
+    .attr("y", 60)
+    .text("Target Count Set to " + currentTargetCount);
+  svg
+    .append("text")
+    .attr("class", "studyStatusText4")
+    .attr("x", 20)
+    .attr("y", 80)
+    .text("Click to Begin Block " + currentBlock + " of " + totalBlock);
+  svg
+    .append("text")
+    .attr("class", "studyStatusText5")
+    .attr("x", 20)
+    .attr("y", 100)
+    .text("The block has " + totalTrials + " Trials");
+  // Add in the cursor circle at 0,0 with 0 radius
+  // We add it first so that it appears behind the targets
+  svg
+    .append("circle")
+    .attr("class", "cursorCircle")
+    .attr("cx", 0)
+    .attr("cy", 0)
+    .attr("r", 0)
+    .attr("fill", "lightgray");
+  //  Add in cursorMorph circle  at 0,0 with 0 radius.
+  //  We add it first so that it appears behind the targets
+  svg
+    .append("circle")
+    .attr("class", "cursorMorphCircle")
+    .attr("cx", 0)
+    .attr("cy", 0)
+    .attr("r", 0)
+    .attr("fill", "lightgray");
 
-// Below initiates neccesary UI elements for the study.
-// Make the targets
-var targets = initTargets(numTargets, minRadius, maxRadius, minSep);
-// Choose the target that should be clicked
-var clickTarget = Math.floor(Math.random() * targets.length);
-svg
-  .append("text")
-  .attr("class", "studyStatusText1")
-  .attr("x", 20)
-  .attr("y", 20)
-  .text("Cursor Set to " + currentTechnique);
-svg
-  .append("text")
-  .attr("class", "studyStatusText2")
-  .attr("x", 20)
-  .attr("y", 40)
-  .text("Background Colour Set to " + currentBackGroundColour);
-svg
-  .append("text")
-  .attr("class", "studyStatusText3")
-  .attr("x", 20)
-  .attr("y", 60)
-  .text("Click to Begin Block " + currentBlock + " of " + totalBlock);
-svg
-  .append("text")
-  .attr("class", "studyStatusText4")
-  .attr("x", 20)
-  .attr("y", 80)
-  .text("The block has " + totalTrials + " Trials");
-// Add in the cursor circle at 0,0 with 0 radius
-// We add it first so that it appears behind the targets
-svg
-  .append("circle")
-  .attr("class", "cursorCircle")
-  .attr("cx", 0)
-  .attr("cy", 0)
-  .attr("r", 0)
-  .attr("fill", "lightgray");
-//  Add in cursorMorph circle  at 0,0 with 0 radius.
-//  We add it first so that it appears behind the targets
-svg
-  .append("circle")
-  .attr("class", "cursorMorphCircle")
-  .attr("cx", 0)
-  .attr("cy", 0)
-  .attr("r", 0)
-  .attr("fill", "lightgray");
-
-// Below binds events to UI elements to implement the study work flow.
-// Handle mousemove events. There should be different visuals preseneted when moving the cursor.
-svg.on("mousemove", function (d, i) {
-  var capturedTargetIdx;
-  if (currentTechnique == "BUBBLE")
-    capturedTargetIdx = getTargetCapturedByBubbleCursor(
-      d3.mouse(this),
-      targets
-    );
-  else if (currentTechnique == "POINT")
-    capturedTargetIdx = getTargetCapturedByPointCursor(d3.mouse(this), targets);
-  else if (currentTechnique == "AREA")
-    capturedTargetIdx = getTargetCapturedByAreaCursor(d3.mouse(this), targets);
-  // Update the fillcolor of the targetcircles
-  updateTargetsFill(capturedTargetIdx, clickTarget);
-});
-
-// Handle a mouse click. Mouse clicks have different effect depending on the study status
-svg.on("click", function (d, i) {
-  // If current status is the rest before a block, a click would initiate new target circles and start the study.
-  if (isRestBeforeBlock) {
-    console.log('Beginning block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
-    isRestBeforeBlock = false;
-    setStatusText("", "", "", "");
-    isStudyRunning = true;
-    var d = new Date();
-    trialStartTime = d.getTime();
-    numTargets = 40;
-    // Make the targets
-    targets = initTargets(numTargets, minRadius, maxRadius, minSep);
-    // Choose the target that should be clicked
-    clickTarget = Math.floor(Math.random() * targets.length);
-    // Add in the target circles
-    svg
-      .selectAll("targetCircles")
-      .data(targets)
-      .enter()
-      .append("circle")
-      .attr("class", "targetCircles")
-      .attr("cx", function (d, i) {
-        return d[0][0];
-      })
-      .attr("cy", function (d, i) {
-        return d[0][1];
-      })
-      .attr("r", function (d, i) {
-        return d[1] - 1;
-      })
-      .attr("stroke-width", 2)
-      .attr("stroke", "limegreen")
-      .attr("fill", "white");
-    svg.select(".cursorCircle").style("visibility", function () {
-      return "visible";
-    });
-    svg.select(".cursorMorphCircle").style("visibility", function () {
-      return "visible";
-    });
-    // Update the fill color of the targets
-    updateTargetsFill(-1, clickTarget);
-  }
-  else if (isRestBeforeCondition){
-    isRestBeforeCondition = false
-    // Reset variables so we can continue the experiment
-    currentBlock = 1
-    currentTrial = 0
-    currentTrialMissedClicks = 0
-    isRestBeforeBlock = true
-    // Update the independant variables
-    techinque = iv_csv[currentCondition][1]
-    backgroundColour = iv_csv[currentCondition][2]
-    targetCount = iv_csv[currentCondition][3]
-    setTechnique()
-    setBackgroundColour()
-    setTargetCount()
-    console.log('Condition %d; cursor: %s, background_colour: %s, target_count: %d', techinque, backgroundColour, targetCount)
-    setStatusText(
-      "Cursor Set to " + currentTechnique,
-      "Background Colour Set to " + currentTechnique,
-      "Click to Begin Block " + currentBlock + " of " + totalBlock,
-      "The block has " + totalTrials + " Trials"
-    )
-  }
-  // Otherwise if the current status is study-running, a click should be handled based on currentTechnique .
-  else if (isStudyRunning) {
+  // Below binds events to UI elements to implement the study work flow.
+  // Handle mousemove events. There should be different visuals preseneted when moving the cursor.
+  svg.on("mousemove", function (d, i) {
     var capturedTargetIdx;
     if (currentTechnique == "BUBBLE")
       capturedTargetIdx = getTargetCapturedByBubbleCursor(
@@ -404,112 +337,212 @@ svg.on("click", function (d, i) {
         targets
       );
     else if (currentTechnique == "POINT")
-      capturedTargetIdx = getTargetCapturedByPointCursor(
-        d3.mouse(this),
-        targets
-      );
-    else if (currentTechnique == "AREA") {
-      capturedTargetIdx = getTargetCapturedByAreaCursor(
-        d3.mouse(this),
-        targets
-      );
-    }
+      capturedTargetIdx = getTargetCapturedByPointCursor(d3.mouse(this), targets);
+    else if (currentTechnique == "AREA")
+      capturedTargetIdx = getTargetCapturedByAreaCursor(d3.mouse(this), targets);
+    // Update the fillcolor of the targetcircles
+    updateTargetsFill(capturedTargetIdx, clickTarget);
+  });
 
-    // If user clicked on the clickTarget then choose a new clickTarget
-    if (capturedTargetIdx == clickTarget) {
-      var newClickTarget = clickTarget;
-      // Make sure newClickTarget is not the same as the current clickTarget
-      while (newClickTarget == clickTarget)
-        newClickTarget = Math.floor(Math.random() * targets.length);
-      clickTarget = newClickTarget;
-
-      // Calculate the time taken for a trial and append it to the trialFileContent string.
+  // Handle a mouse click. Mouse clicks have different effect depending on the study status
+  svg.on("click", function (d, i) {
+    // If current status is the rest before a block, a click would initiate new target circles and start the study.
+    if (isRestBeforeBlock) {
+      console.log('Beginning block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
+      isRestBeforeBlock = false;
+      setStatusText("", "", "", "", "");
+      isStudyRunning = true;
       var d = new Date();
-      var trialEndTime = d.getTime();
-      var trialTotalTime = trialEndTime - trialStartTime;
-      trialFileContent =
-        trialFileContent +
-        participant +
-        "\t" +
-        currentTrial +
-        "\t" +
-        currentTechnique +
-        "\t" +
-        trialTotalTime +
-        "\n";
-      currentTrial++;
-      console.log('Completed trial; trial_no: %d, total_trials: %d, misses: %d,  time_taken: %d ms', currentTrial, totalTrials, currentTrialMissedClicks,trialTotalTime)
+      trialStartTime = d.getTime();
+      numTargets = currentTargetCount;
+      // Make the targets
+      targets = initTargets(numTargets, minRadius, maxRadius, minSep);
+      // Choose the target that should be clicked
+      clickTarget = Math.floor(Math.random() * targets.length);
+      // Add in the target circles
+      svg
+        .selectAll("targetCircles")
+        .data(targets)
+        .enter()
+        .append("circle")
+        .attr("class", "targetCircles")
+        .attr("cx", function (d, i) {
+          return d[0][0];
+        })
+        .attr("cy", function (d, i) {
+          return d[0][1];
+        })
+        .attr("r", function (d, i) {
+          return d[1] - 1;
+        })
+        .attr("stroke-width", 2)
+        .attr("stroke", "limegreen")
+        .attr("fill", "white");
+      svg.select(".cursorCircle").style("visibility", function () {
+        return "visible";
+      });
+      svg.select(".cursorMorphCircle").style("visibility", function () {
+        return "visible";
+      });
+      // Update the fill color of the targets
+      updateTargetsFill(-1, clickTarget);
+    }
+    else if (isRestBeforeCondition){
+      isRestBeforeCondition = false
+      // Reset variables so we can continue the experiment
+      currentBlock = 1
+      currentTrial = 0
       currentTrialMissedClicks = 0
-      if (currentTrial == totalTrials) {
-        // A block is finished when currentTrial == totalTrials,
-        // add a dashline to for data readability.
-        trialFileContent += "------\n";
-        console.log('Completed block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
+      isRestBeforeBlock = true
+      trialFileContent = "participant\ttrial\ttechnique\tbackground_colour\ttarget_count\ttime\tmisses\n";
+      // Update the independant variables
+      setIndependentVariables()
+      console.log('Condition %d; cursor: %s, background_colour: %s, target_count: %d', currentCondition, currentTechnique, currentBackGroundColour, currentTargetCount)
+      setStatusText(
+        "Cursor Set to " + currentTechnique,
+        "Background Colour Set to " + currentBackGroundColour,
+        "Target Count Set to " + currentTargetCount,
+        "Click to Begin Block " + currentBlock + " of " + totalBlock,
+        "The block has " + totalTrials + " Trials",
+        ""
+      )
+    }
+    // Otherwise if the current status is study-running, a click should be handled based on currentTechnique .
+    else if (isStudyRunning) {
+      var capturedTargetIdx;
+      if (currentTechnique == "BUBBLE")
+        capturedTargetIdx = getTargetCapturedByBubbleCursor(
+          d3.mouse(this),
+          targets
+        );
+      else if (currentTechnique == "POINT")
+        capturedTargetIdx = getTargetCapturedByPointCursor(
+          d3.mouse(this),
+          targets
+        );
+      else if (currentTechnique == "AREA") {
+        capturedTargetIdx = getTargetCapturedByAreaCursor(
+          d3.mouse(this),
+          targets
+        );
+      }
 
-        if (currentBlock == totalBlock) {
-          // Current condition is finished when currentBlock == totalBlock,
-          var blob = new Blob([trialFileContent], {
-            type: "text/plain;charset=utf-8;",
-          });
-          // Download the study data as a txt file.
-          saveAs(
-            blob,
-            "P" + participant + "_" + currentTechnique + "_data.txt"
-          );
-          currentCondition++;
-          console.log('Completed condition %d out of %d', currentCondition, totalConditions)
-          if (currentCondition == totalConditions){
-            // All conditions is ifnished when currentCondition == totalCondition
-            // Clear the visualization.
-            isStudyRunning = false;
-            svg.selectAll(".targetCircles").remove();
-            numTargets = 0;
+      // If user clicked on the clickTarget then choose a new clickTarget
+      if (capturedTargetIdx == clickTarget) {
+        var newClickTarget = clickTarget;
+        // Make sure newClickTarget is not the same as the current clickTarget
+        while (newClickTarget == clickTarget)
+          newClickTarget = Math.floor(Math.random() * targets.length);
+        clickTarget = newClickTarget;
+
+        // Calculate the time taken for a trial and append it to the trialFileContent string.
+        var d = new Date();
+        var trialEndTime = d.getTime();
+        var trialTotalTime = trialEndTime - trialStartTime;
+        trialFileContent =
+          trialFileContent +
+          participant +
+          "\t" +
+          currentTrial +
+          "\t" +
+          currentTechnique +
+          "\t" +
+          currentBackGroundColour +
+          "\t" +
+          currentTargetCount +
+          "\t" +
+          trialTotalTime +
+          "\t" +
+          currentTrialMissedClicks +
+          "\n";
+        currentTrial++;
+        console.log('Completed trial; trial_no: %d, total_trials: %d, misses: %d,  time_taken: %d ms', currentTrial, totalTrials, currentTrialMissedClicks,trialTotalTime)
+        currentTrialMissedClicks = 0
+        if (currentTrial == totalTrials) {
+          // A block is finished when currentTrial == totalTrials,
+          // add a dashline to for data readability.
+          trialFileContent += "------\n";
+          console.log('Completed block: block_no: %d, total_blocks: %d', currentBlock, totalBlock)
+
+          if (currentBlock == totalBlock) {
+            currentCondition++;
+            // Current condition is finished when currentBlock == totalBlock,
+            var blob = new Blob([trialFileContent], {
+              type: "text/plain;charset=utf-8;",
+            });
+            // Download the study data as a txt file.
+            saveAs(
+              blob,
+              "p" + participant + "_" + "c" + currentCondition + "_" + currentTechnique + "_" + currentBackGroundColour+ "_" + currentTargetCount + "_data.txt"
+            );
+            console.log('Completed condition %d out of %d', currentCondition, totalConditions)
+            if (currentCondition == totalConditions){
+              // All conditions is ifnished when currentCondition == totalCondition
+              // Clear the visualization.
+              isStudyRunning = false;
+              svg.selectAll(".targetCircles").remove();
+              numTargets = 0;
+              setStatusText(
+                "Study Complete!",
+                "Please Ensure the Data File Has Been Downloaded",
+                "",
+                "",
+                ""
+              );
+            } else {
+              // This isn't the last condition, repeat another study
+              isRestBeforeCondition = true
+              isStudyRunning = false;
+              svg.selectAll(".targetCircles").remove();
+              numTargets = 0;
+              setStatusText(
+                "Condition " + currentCondition  + " out of "+ totalConditions +" Complete!",
+                "Please Ensure the Data File Has Been Downloaded",
+                "Please click to continue to the next condition.",
+                "",
+                ""
+              );
+            } 
+          } else {
+            // Finished one block, the participants should be allowed to rest.
             setStatusText(
-              "Study Complete!",
-              "Please Ensure the Data File Has Been Downloaded",
+              "Block Complete!",
+              "Click to continue to the next block",
+              "",
               "",
               ""
             );
-          } else {
-            // This isn't the last condition, repeat another study
-            isRestBeforeCondition = true
-            isStudyRunning = false;
+            isRestBeforeBlock = true;
+            currentBlock += 1;
+            currentTrial = 0;
             svg.selectAll(".targetCircles").remove();
-            numTargets = 0;
-            setStatusText(
-              "Condition " + currentCondition  + " out of "+ totalConditions +" Complete!",
-              "Please Ensure the Data File Has Been Downloaded",
-              "Please click to continue to the next condition.",
-              ""
-            );
-          } 
+            svg.select(".cursorCircle").style("visibility", function () {
+              return "hidden";
+            });
+            svg.select(".cursorMorphCircle").style("visibility", function () {
+              return "hidden";
+            });
+          }
         } else {
-          // Finished one block, the participants should be allowed to rest.
-          setStatusText(
-            "Block Complete!",
-            "Click to continue to the next block",
-            "",
-            ""
-          );
-          isRestBeforeBlock = true;
-          currentBlock += 1;
-          currentTrial = 0;
-          svg.selectAll(".targetCircles").remove();
-          svg.select(".cursorCircle").style("visibility", function () {
-            return "hidden";
-          });
-          svg.select(".cursorMorphCircle").style("visibility", function () {
-            return "hidden";
-          });
+          // Still within a block, update drawing of targets and the trialStartTime.
+          updateTargetsFill(capturedTargetIdx, clickTarget);
+          trialStartTime = trialEndTime;
         }
       } else {
-        // Still within a block, update drawing of targets and the trialStartTime.
-        updateTargetsFill(capturedTargetIdx, clickTarget);
-        trialStartTime = trialEndTime;
+        // Missed click
+        currentTrialMissedClicks++;
       }
-    } else {
-      // Missed click
-      currentTrialMissedClicks++;
     }
-  }
+  });
+}
+
+// Load CSV file
+var fp = 'https://raw.githubusercontent.com/mohameda3/selection_experiment/main/participant_' + participant + '.csv'
+var csv = []
+d3.csv(fp, function(data) {
+  console.log('Loading csv file: %s', fp)
+  csv = data
+  console.log(csv)
+  console.log('Beginning the study....')
+  run_study();
 });
