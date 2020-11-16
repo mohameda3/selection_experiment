@@ -1,3 +1,5 @@
+# Selection Experiment
+
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
 
@@ -9,9 +11,8 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This repositiory contains the extended code used for my CSC428 A2 experiment.
+This repositiory contains the extended code used for my **CSC428 A2** experiment.
 
-:
 * `app.js` is an extended javascript file from the starter code
 * `code5.html` is an extended html file from the starter code
 * `participant_[1-3].csv` is the latin-square (var1) and randomized (var2, var3) set of conditions.
