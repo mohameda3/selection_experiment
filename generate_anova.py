@@ -9,6 +9,9 @@ NUM_BLOCKS = 3
 DV_TIME = 5
 DV_MISSES = 6
 
+anova_time_fp = "anova_time.txt"
+anova_error_rate_fp = "anova_error_rate.txt"
+
 CURSOR_MAP = {
     "BUBBLE": 0,
     "AREA": 1,
@@ -68,7 +71,8 @@ def generate_anova(participant_data):
 
             # Get the DV values
             times = np.array([float(line[DV_TIME]) for line in csv_lines], dtype=float)
-            error_rate = np.array([float(line[DV_MISSES]) / (float(line[DV_MISSES]) + 1) for line in csv_lines], dtype=float)
+            error_rate = np.array([(float(line[DV_MISSES]) * 100) / (float(line[DV_MISSES]) + 1) for line in csv_lines],
+                                  dtype=float)
 
             # Add the DV mean to their respective condition number
             time_matrix[condition] = times.mean()
@@ -104,6 +108,6 @@ if __name__ == '__main__':
         anova_error_rate_matrix[i] = participant_error_rate_matrix
 
     # Write the files as CSV
-    np.savetxt("anova_time.txt", anova_time_matrix, delimiter=",")
-    np.savetxt("anova_error_rate.txt", anova_time_matrix, delimiter=",")
+    np.savetxt(anova_time_fp, anova_time_matrix, delimiter=",")
+    np.savetxt(anova_error_rate_fp, anova_error_rate_matrix, delimiter=",")
 
